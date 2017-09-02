@@ -3,6 +3,14 @@
 
 Parser for files in OpenDRIVE format, offers additional functions to navigate through the road network
 
+## Install
+
+```bash
+
+sudo pip install --process-dependency-links https://github.com/stefan-urban/pyopendriveparser/archive/master.zip
+
+```
+
 ## Example usage
 
 ```bash

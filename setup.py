@@ -9,12 +9,12 @@ setup(name='opendriveparser',
       author_email='stefan.urban@live.de',
       url='https://github.com/stefan-urban/pyopendriveparser',
       packages=['opendriveparser'],
+      dependency_links=[
+          'https://github.com/stefan-urban/pyeulerspiral/archive/master.zip#egg=pyeulerspiral-1.0',
+      ],
       install_requires=[
           "numpy",
           "lxml",
           'pyeulerspiral==1.0',
-      ],
-      dependency_links=[
-          'git+https://github.com/stefan-urban/pyeulerspiral.git#egg=pyeulerspiral-1.0',
       ]
      )
