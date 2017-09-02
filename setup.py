@@ -8,7 +8,7 @@ setup(name='opendriveparser',
       author='Stefan Urban',
       author_email='stefan.urban@live.de',
       url='https://github.com/stefan-urban/pyopendriveparser',
-      packages=['opendrive-parser'],
+      packages=['opendriveparser'],
       install_requires=[
           "numpy",
           "lxml",
