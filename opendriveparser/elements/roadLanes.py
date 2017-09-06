@@ -8,10 +8,12 @@ class Lanes(object):
 
     @property
     def laneOffsets(self):
+        self._laneOffsets.sort(key=lambda x: x.sPos)
         return self._laneOffsets
 
     @property
     def laneSections(self):
+        self._laneSections.sort(key=lambda x: x.sPos)
         return self._laneSections
 
     def getLaneSection(self, laneSectionIdx):
@@ -133,6 +135,7 @@ class LaneSection(object):
 
     @property
     def leftLanes(self):
+        """ Get list of sorted lanes always starting in the middle (lane id -1) """
         return self._leftLanes
 
     @property
@@ -141,6 +144,7 @@ class LaneSection(object):
 
     @property
     def rightLanes(self):
+        """ Get list of sorted lanes always starting in the middle (lane id 1) """
         return self._rightLanes
 
     @property
@@ -157,18 +161,21 @@ class LaneSection(object):
 
 class LeftLanes(object):
 
+    sort_direction = True
+
     def __init__(self):
         self._lanes = []
 
     @property
     def lanes(self):
+        self._lanes.sort(key=lambda x: x.id, reverse=self.sort_direction)
         return self._lanes
 
 class CenterLanes(LeftLanes):
     pass
 
 class RightLanes(LeftLanes):
-    pass
+    sort_direction = False
 
 
 class Lane(object):
@@ -223,6 +230,7 @@ class Lane(object):
 
     @property
     def widths(self):
+        self._widths.sort(key=lambda x: x.sOffset)
         return self._widths
 
     def getWidth(self, widthIdx):
