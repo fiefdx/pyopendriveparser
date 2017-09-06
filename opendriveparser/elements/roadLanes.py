@@ -136,16 +136,16 @@ class LaneSection(object):
     @property
     def leftLanes(self):
         """ Get list of sorted lanes always starting in the middle (lane id -1) """
-        return self._leftLanes
+        return self._leftLanes.lanes
 
     @property
     def centerLanes(self):
-        return self._centerLanes
+        return self._centerLanes.lanes
 
     @property
     def rightLanes(self):
         """ Get list of sorted lanes always starting in the middle (lane id 1) """
-        return self._rightLanes
+        return self._rightLanes.lanes
 
     @property
     def allLanes(self):

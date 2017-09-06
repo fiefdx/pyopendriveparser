@@ -1,4 +1,5 @@
 
+import numpy as np
 from lxml import etree
 
 from opendriveparser.elements.openDrive import OpenDrive
@@ -349,7 +350,7 @@ def parse_opendrive(rootNode):
                     # Rules
                     # TODO
 
-                    newSideLanes.lanes.append(newLane)
+                    newSideLanes.append(newLane)
 
             newRoad.lanes.laneSections.append(newLaneSection)
 
@@ -365,6 +366,14 @@ def parse_opendrive(rootNode):
             else:
                 laneSection.length = newRoad.lanes.laneSections[laneSection.idx + 1].sPos - laneSection.sPos
 
+        # OpenDrive does not provide lane width lengths by itself, calculate them by ourselves
+        for laneSection in newRoad.lanes.laneSections:
+            for lane in laneSection.allLanes:
+                widthsPoses = np.array([x.sOffset for x in lane.widths] + [laneSection.length])
+                widthsLengths = widthsPoses[1:] - widthsPoses[:-1]
+                
+                for widthIdx, width in enumerate(lane.widths):
+                    width.length = widthsLengths[widthIdx]
 
         # Objects
         # TODO
