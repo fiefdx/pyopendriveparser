@@ -11,369 +11,367 @@ from opendriveparser.elements.roadLanes import LaneOffset as RoadLanesLaneOffset
 from opendriveparser.elements.junction import Junction, Connection as JunctionConnection, LaneLink as JunctionConnectionLaneLink
 
 
-class OpenDriveParser(object):
 
-    @staticmethod
-    def parse(rootNode):
-        """ Tries to parse XML tree, return OpenDRIVE object """
+def parse_opendrive(rootNode):
+    """ Tries to parse XML tree, return OpenDRIVE object """
 
-        # Only accept xml element
-        if not etree.iselement(rootNode):
-            raise TypeError("Argument rootNode is not a xml element")
+    # Only accept xml element
+    if not etree.iselement(rootNode):
+        raise TypeError("Argument rootNode is not a xml element")
 
 
-        newOpenDrive = OpenDrive()
+    newOpenDrive = OpenDrive()
 
-        # Header
-        header = rootNode.find("header")
+    # Header
+    header = rootNode.find("header")
 
-        if header is not None:
+    if header is not None:
 
-            # Reference
-            if header.find("geoReference") is not None:
-                pass
+        # Reference
+        if header.find("geoReference") is not None:
+            pass
 
-        # Junctions
-        for junction in rootNode.findall("junction"):
+    # Junctions
+    for junction in rootNode.findall("junction"):
 
-            newJunction = Junction()
+        newJunction = Junction()
 
-            newJunction.id = int(junction.get("id"))
-            newJunction.name = str(junction.get("name"))
+        newJunction.id = int(junction.get("id"))
+        newJunction.name = str(junction.get("name"))
 
-            for connection in junction.findall("connection"):
+        for connection in junction.findall("connection"):
 
-                newConnection = JunctionConnection()
+            newConnection = JunctionConnection()
 
-                newConnection.id = connection.get("id")
-                newConnection.incomingRoad = connection.get("incomingRoad")
-                newConnection.connectingRoad = connection.get("connectingRoad")
-                newConnection.contactPoint = connection.get("contactPoint")
+            newConnection.id = connection.get("id")
+            newConnection.incomingRoad = connection.get("incomingRoad")
+            newConnection.connectingRoad = connection.get("connectingRoad")
+            newConnection.contactPoint = connection.get("contactPoint")
 
-                for laneLink in connection.findall("laneLink"):
+            for laneLink in connection.findall("laneLink"):
 
-                    newLaneLink = JunctionConnectionLaneLink()
+                newLaneLink = JunctionConnectionLaneLink()
 
-                    newLaneLink.fromId = laneLink.get("from")
-                    newLaneLink.toId = laneLink.get("to")
+                newLaneLink.fromId = laneLink.get("from")
+                newLaneLink.toId = laneLink.get("to")
 
-                    newConnection.addLaneLink(newLaneLink)
+                newConnection.addLaneLink(newLaneLink)
 
-                newJunction.addConnection(newConnection)
+            newJunction.addConnection(newConnection)
 
-            newOpenDrive.junctions.append(newJunction)
+        newOpenDrive.junctions.append(newJunction)
 
 
 
-        # Load roads
-        for road in rootNode.findall("road"):
+    # Load roads
+    for road in rootNode.findall("road"):
 
-            newRoad = Road()
+        newRoad = Road()
 
-            newRoad.id = int(road.get("id"))
-            newRoad.name = road.get("name")
-            newRoad.junction = int(road.get("junction")) if road.get("junction") != "-1" else None
+        newRoad.id = int(road.get("id"))
+        newRoad.name = road.get("name")
+        newRoad.junction = int(road.get("junction")) if road.get("junction") != "-1" else None
 
-            # TODO: Problems!!!!
-            newRoad.length = float(road.get("length"))
+        # TODO: Problems!!!!
+        newRoad.length = float(road.get("length"))
 
-            # Links
-            if road.find("link") is not None:
+        # Links
+        if road.find("link") is not None:
 
-                predecessor = road.find("link").find("predecessor")
+            predecessor = road.find("link").find("predecessor")
 
-                if predecessor is not None:
+            if predecessor is not None:
 
-                    newPredecessor = RoadLinkPredecessor()
+                newPredecessor = RoadLinkPredecessor()
 
-                    newPredecessor.elementType = predecessor.get("elementType")
-                    newPredecessor.elementId = predecessor.get("elementId")
-                    newPredecessor.contactPoint = predecessor.get("contactPoint")
+                newPredecessor.elementType = predecessor.get("elementType")
+                newPredecessor.elementId = predecessor.get("elementId")
+                newPredecessor.contactPoint = predecessor.get("contactPoint")
 
-                    newRoad.link.predecessor = newPredecessor
-
-
-                successor = road.find("link").find("successor")
-
-                if successor is not None:
-
-                    newSuccessor = RoadLinkSuccessor()
-
-                    newSuccessor.elementType = successor.get("elementType")
-                    newSuccessor.elementId = successor.get("elementId")
-                    newSuccessor.contactPoint = successor.get("contactPoint")
-
-                    newRoad.link.successor = newSuccessor
-
-                for neighbor in road.find("link").findall("neighbor"):
-
-                    newNeighbor = RoadLinkNeighbor()
-
-                    newNeighbor.side = neighbor.get("side")
-                    newNeighbor.elementId = neighbor.get("elementId")
-                    newNeighbor.direction = neighbor.get("direction")
-
-                    newRoad.link.neighbors.append(newNeighbor)
+                newRoad.link.predecessor = newPredecessor
 
 
-            # Type
-            for roadType in road.findall("type"):
+            successor = road.find("link").find("successor")
 
-                newType = RoadType()
+            if successor is not None:
 
-                newType.sPos = roadType.get("s")
-                newType.type = roadType.get("type")
+                newSuccessor = RoadLinkSuccessor()
 
-                if roadType.find("speed"):
+                newSuccessor.elementType = successor.get("elementType")
+                newSuccessor.elementId = successor.get("elementId")
+                newSuccessor.contactPoint = successor.get("contactPoint")
 
-                    newSpeed = RoadTypeSpeed()
+                newRoad.link.successor = newSuccessor
 
-                    newSpeed.max = roadType.find("speed").get("max")
-                    newSpeed.unit = roadType.find("speed").get("unit")
+            for neighbor in road.find("link").findall("neighbor"):
 
-                    newType.speed = newSpeed
+                newNeighbor = RoadLinkNeighbor()
 
-                newRoad.types.append(newType)
+                newNeighbor.side = neighbor.get("side")
+                newNeighbor.elementId = neighbor.get("elementId")
+                newNeighbor.direction = neighbor.get("direction")
+
+                newRoad.link.neighbors.append(newNeighbor)
 
 
-            # Plan view
-            for geometry in road.find("planView").findall("geometry"):
+        # Type
+        for roadType in road.findall("type"):
 
-                startCoord = [float(geometry.get("x")), float(geometry.get("y"))]
+            newType = RoadType()
 
-                if geometry.find("line") is not None:
-                    newRoad.planView.addLine(startCoord, float(geometry.get("hdg")), float(geometry.get("length")))
+            newType.sPos = roadType.get("s")
+            newType.type = roadType.get("type")
 
-                elif geometry.find("spiral") is not None:
-                    newRoad.planView.addSpiral(startCoord, float(geometry.get("hdg")), float(geometry.get("length")), float(geometry.find("spiral").get("curvStart")), float(geometry.find("spiral").get("curvEnd")))
+            if roadType.find("speed"):
 
-                elif geometry.find("arc") is not None:
-                    newRoad.planView.addArc(startCoord, float(geometry.get("hdg")), float(geometry.get("length")), float(geometry.find("arc").get("curvature")))
+                newSpeed = RoadTypeSpeed()
 
-                elif geometry.find("poly3") is not None:
-                    raise NotImplementedError()
+                newSpeed.max = roadType.find("speed").get("max")
+                newSpeed.unit = roadType.find("speed").get("unit")
 
-                elif geometry.find("paramPoly3") is not None:
-                    if geometry.find("paramPoly3").get("pRange"):
+                newType.speed = newSpeed
 
-                        if geometry.find("paramPoly3").get("pRange") == "arcLength":
-                            pMax = float(geometry.get("length"))
-                        else:
-                            pMax = None
+            newRoad.types.append(newType)
+
+
+        # Plan view
+        for geometry in road.find("planView").findall("geometry"):
+
+            startCoord = [float(geometry.get("x")), float(geometry.get("y"))]
+
+            if geometry.find("line") is not None:
+                newRoad.planView.addLine(startCoord, float(geometry.get("hdg")), float(geometry.get("length")))
+
+            elif geometry.find("spiral") is not None:
+                newRoad.planView.addSpiral(startCoord, float(geometry.get("hdg")), float(geometry.get("length")), float(geometry.find("spiral").get("curvStart")), float(geometry.find("spiral").get("curvEnd")))
+
+            elif geometry.find("arc") is not None:
+                newRoad.planView.addArc(startCoord, float(geometry.get("hdg")), float(geometry.get("length")), float(geometry.find("arc").get("curvature")))
+
+            elif geometry.find("poly3") is not None:
+                raise NotImplementedError()
+
+            elif geometry.find("paramPoly3") is not None:
+                if geometry.find("paramPoly3").get("pRange"):
+
+                    if geometry.find("paramPoly3").get("pRange") == "arcLength":
+                        pMax = float(geometry.get("length"))
                     else:
                         pMax = None
-
-                    newRoad.planView.addParamPoly3( \
-                        startCoord, \
-                        float(geometry.get("hdg")), \
-                        float(geometry.get("length")), \
-                        float(geometry.find("paramPoly3").get("aU")), \
-                        float(geometry.find("paramPoly3").get("bU")), \
-                        float(geometry.find("paramPoly3").get("cU")), \
-                        float(geometry.find("paramPoly3").get("dU")), \
-                        float(geometry.find("paramPoly3").get("aV")), \
-                        float(geometry.find("paramPoly3").get("bV")), \
-                        float(geometry.find("paramPoly3").get("cV")), \
-                        float(geometry.find("paramPoly3").get("dV")), \
-                        pMax \
-                    )
-
                 else:
-                    raise Exception("invalid xml")
+                    pMax = None
 
+                newRoad.planView.addParamPoly3( \
+                    startCoord, \
+                    float(geometry.get("hdg")), \
+                    float(geometry.get("length")), \
+                    float(geometry.find("paramPoly3").get("aU")), \
+                    float(geometry.find("paramPoly3").get("bU")), \
+                    float(geometry.find("paramPoly3").get("cU")), \
+                    float(geometry.find("paramPoly3").get("dU")), \
+                    float(geometry.find("paramPoly3").get("aV")), \
+                    float(geometry.find("paramPoly3").get("bV")), \
+                    float(geometry.find("paramPoly3").get("cV")), \
+                    float(geometry.find("paramPoly3").get("dV")), \
+                    pMax \
+                )
 
-            # Elevation profile
-            if road.find("elevationProfile") is not None:
+            else:
+                raise Exception("invalid xml")
 
-                for elevation in road.find("elevationProfile").findall("elevation"):
 
-                    newElevation = RoadElevationProfileElevation()
+        # Elevation profile
+        if road.find("elevationProfile") is not None:
 
-                    newElevation.sPos = elevation.get("s")
-                    newElevation.a = elevation.get("a")
-                    newElevation.b = elevation.get("b")
-                    newElevation.c = elevation.get("c")
-                    newElevation.d = elevation.get("d")
+            for elevation in road.find("elevationProfile").findall("elevation"):
 
-                    newRoad.elevationProfile.elevations.append(newElevation)
+                newElevation = RoadElevationProfileElevation()
 
+                newElevation.sPos = elevation.get("s")
+                newElevation.a = elevation.get("a")
+                newElevation.b = elevation.get("b")
+                newElevation.c = elevation.get("c")
+                newElevation.d = elevation.get("d")
 
-            # Lateral profile
-            if road.find("lateralProfile") is not None:
+                newRoad.elevationProfile.elevations.append(newElevation)
 
-                for superelevation in road.find("lateralProfile").findall("superelevation"):
 
-                    newSuperelevation = RoadLateralProfileSuperelevation()
+        # Lateral profile
+        if road.find("lateralProfile") is not None:
 
-                    newSuperelevation.sPos = superelevation.get("s")
-                    newSuperelevation.a = superelevation.get("a")
-                    newSuperelevation.b = superelevation.get("b")
-                    newSuperelevation.c = superelevation.get("c")
-                    newSuperelevation.d = superelevation.get("d")
+            for superelevation in road.find("lateralProfile").findall("superelevation"):
 
-                    newRoad.lateralProfile.superelevations.append(newSuperelevation)
+                newSuperelevation = RoadLateralProfileSuperelevation()
 
-                for crossfall in road.find("lateralProfile").findall("crossfall"):
+                newSuperelevation.sPos = superelevation.get("s")
+                newSuperelevation.a = superelevation.get("a")
+                newSuperelevation.b = superelevation.get("b")
+                newSuperelevation.c = superelevation.get("c")
+                newSuperelevation.d = superelevation.get("d")
 
-                    newCrossfall = RoadLateralProfileCrossfall()
+                newRoad.lateralProfile.superelevations.append(newSuperelevation)
 
-                    newCrossfall.side = crossfall.get("side")
-                    newCrossfall.sPos = crossfall.get("s")
-                    newCrossfall.a = crossfall.get("a")
-                    newCrossfall.b = crossfall.get("b")
-                    newCrossfall.c = crossfall.get("c")
-                    newCrossfall.d = crossfall.get("d")
+            for crossfall in road.find("lateralProfile").findall("crossfall"):
 
-                    newRoad.lateralProfile.crossfalls.append(newCrossfall)
+                newCrossfall = RoadLateralProfileCrossfall()
 
-                for shape in road.find("lateralProfile").findall("shape"):
+                newCrossfall.side = crossfall.get("side")
+                newCrossfall.sPos = crossfall.get("s")
+                newCrossfall.a = crossfall.get("a")
+                newCrossfall.b = crossfall.get("b")
+                newCrossfall.c = crossfall.get("c")
+                newCrossfall.d = crossfall.get("d")
 
-                    newShape = RoadLateralProfileShape()
+                newRoad.lateralProfile.crossfalls.append(newCrossfall)
 
-                    newShape.sPos = shape.get("s")
-                    newShape.t = shape.get("t")
-                    newShape.a = shape.get("a")
-                    newShape.b = shape.get("b")
-                    newShape.c = shape.get("c")
-                    newShape.d = shape.get("d")
+            for shape in road.find("lateralProfile").findall("shape"):
 
-                    newRoad.lateralProfile.shapes.append(newShape)
+                newShape = RoadLateralProfileShape()
 
+                newShape.sPos = shape.get("s")
+                newShape.t = shape.get("t")
+                newShape.a = shape.get("a")
+                newShape.b = shape.get("b")
+                newShape.c = shape.get("c")
+                newShape.d = shape.get("d")
 
-            # Lanes
-            lanes = road.find("lanes")
+                newRoad.lateralProfile.shapes.append(newShape)
 
-            if lanes is None:
-                raise Exception("Road must have lanes element")
 
-            # Lane offset
-            for laneOffset in lanes.findall("laneOffset"):
+        # Lanes
+        lanes = road.find("lanes")
 
-                newLaneOffset = RoadLanesLaneOffset()
+        if lanes is None:
+            raise Exception("Road must have lanes element")
 
-                newLaneOffset.sPos = laneOffset.get("s")
-                newLaneOffset.a = laneOffset.get("a")
-                newLaneOffset.b = laneOffset.get("b")
-                newLaneOffset.c = laneOffset.get("c")
-                newLaneOffset.d = laneOffset.get("d")
+        # Lane offset
+        for laneOffset in lanes.findall("laneOffset"):
 
-                newRoad.lanes.laneOffsets.append(newLaneOffset)
+            newLaneOffset = RoadLanesLaneOffset()
 
+            newLaneOffset.sPos = laneOffset.get("s")
+            newLaneOffset.a = laneOffset.get("a")
+            newLaneOffset.b = laneOffset.get("b")
+            newLaneOffset.c = laneOffset.get("c")
+            newLaneOffset.d = laneOffset.get("d")
 
-            # Lane sections
-            for laneSectionIdx, laneSection in enumerate(road.find("lanes").findall("laneSection")):
+            newRoad.lanes.laneOffsets.append(newLaneOffset)
 
-                newLaneSection = RoadLanesSection()
 
-                # Manually enumerate lane sections for referencing purposes
-                newLaneSection.idx = laneSectionIdx
+        # Lane sections
+        for laneSectionIdx, laneSection in enumerate(road.find("lanes").findall("laneSection")):
 
-                newLaneSection.sPos = laneSection.get("s")
-                newLaneSection.singleSide = laneSection.get("singleSide")
+            newLaneSection = RoadLanesSection()
 
-                sides = dict(
-                    left=newLaneSection.leftLanes,
-                    center=newLaneSection.centerLanes,
-                    right=newLaneSection.rightLanes
-                    )
+            # Manually enumerate lane sections for referencing purposes
+            newLaneSection.idx = laneSectionIdx
 
-                for sideTag, newSideLanes in sides.items():
+            newLaneSection.sPos = laneSection.get("s")
+            newLaneSection.singleSide = laneSection.get("singleSide")
 
-                    side = laneSection.find(sideTag)
+            sides = dict(
+                left=newLaneSection.leftLanes,
+                center=newLaneSection.centerLanes,
+                right=newLaneSection.rightLanes
+                )
 
-                    # It is possible one side is not present
-                    if side is None:
-                        continue
+            for sideTag, newSideLanes in sides.items():
 
-                    for lane in side.findall("lane"):
+                side = laneSection.find(sideTag)
 
-                        newLane = RoadLaneSectionLane()
+                # It is possible one side is not present
+                if side is None:
+                    continue
 
-                        newLane.id = lane.get("id")
-                        newLane.type = lane.get("type")
-                        newLane.level = lane.get("level")
+                for lane in side.findall("lane"):
 
-                        # Lane Links
-                        if lane.find("link") is not None:
+                    newLane = RoadLaneSectionLane()
 
-                            if lane.find("link").find("predecessor") is not None:
-                                newLane.link.predecessorId = lane.find("link").find("predecessor").get("id")
+                    newLane.id = lane.get("id")
+                    newLane.type = lane.get("type")
+                    newLane.level = lane.get("level")
 
-                            if lane.find("link").find("successor") is not None:
-                                newLane.link.successorId = lane.find("link").find("successor").get("id")
+                    # Lane Links
+                    if lane.find("link") is not None:
 
-                        # Width
-                        for widthIdx, width in enumerate(lane.findall("width")):
+                        if lane.find("link").find("predecessor") is not None:
+                            newLane.link.predecessorId = lane.find("link").find("predecessor").get("id")
 
-                            newWidth = RoadLaneSectionLaneWidth()
+                        if lane.find("link").find("successor") is not None:
+                            newLane.link.successorId = lane.find("link").find("successor").get("id")
 
-                            newWidth.idx = widthIdx
-                            newWidth.sOffset = width.get("sOffset")
-                            newWidth.a = width.get("a")
-                            newWidth.b = width.get("b")
-                            newWidth.c = width.get("c")
-                            newWidth.d = width.get("d")
+                    # Width
+                    for widthIdx, width in enumerate(lane.findall("width")):
 
-                            newLane.widths.append(newWidth)
+                        newWidth = RoadLaneSectionLaneWidth()
 
-                        # Border
-                        for borderIdx, border in enumerate(lane.findall("border")):
+                        newWidth.idx = widthIdx
+                        newWidth.sOffset = width.get("sOffset")
+                        newWidth.a = width.get("a")
+                        newWidth.b = width.get("b")
+                        newWidth.c = width.get("c")
+                        newWidth.d = width.get("d")
 
-                            newBorder = RoadLaneSectionLaneBorder()
+                        newLane.widths.append(newWidth)
 
-                            newBorder.idx = borderIdx
-                            newBorder.sPos = border.get("sOffset")
-                            newBorder.a = border.get("a")
-                            newBorder.b = border.get("b")
-                            newBorder.c = border.get("c")
-                            newBorder.d = border.get("d")
+                    # Border
+                    for borderIdx, border in enumerate(lane.findall("border")):
 
-                            newLane.borders.append(newBorder)
+                        newBorder = RoadLaneSectionLaneBorder()
 
-                        # Road Marks
-                        # TODO
+                        newBorder.idx = borderIdx
+                        newBorder.sPos = border.get("sOffset")
+                        newBorder.a = border.get("a")
+                        newBorder.b = border.get("b")
+                        newBorder.c = border.get("c")
+                        newBorder.d = border.get("d")
 
-                        # Material
-                        # TODO
+                        newLane.borders.append(newBorder)
 
-                        # Visiblility
-                        # TODO
+                    # Road Marks
+                    # TODO
 
-                        # Speed
-                        # TODO
+                    # Material
+                    # TODO
 
-                        # Access
-                        # TODO
+                    # Visiblility
+                    # TODO
 
-                        # Lane Height
-                        # TODO
+                    # Speed
+                    # TODO
 
-                        # Rules
-                        # TODO
+                    # Access
+                    # TODO
 
-                        newSideLanes.lanes.append(newLane)
+                    # Lane Height
+                    # TODO
 
-                newRoad.lanes.laneSections.append(newLaneSection)
+                    # Rules
+                    # TODO
 
+                    newSideLanes.lanes.append(newLane)
 
-            # OpenDrive does not provide lane section lengths by itself, calculate them by ourselves
-            for laneSection in newRoad.lanes.laneSections:
+            newRoad.lanes.laneSections.append(newLaneSection)
 
-                # Last lane section in road
-                if laneSection.idx + 1 >= len(newRoad.lanes.laneSections):
-                    laneSection.length = newRoad.planView.getLength() - laneSection.sPos
 
-                # All but the last lane section end at the succeeding one
-                else:
-                    laneSection.length = newRoad.lanes.laneSections[laneSection.idx + 1].sPos - laneSection.sPos
+        # OpenDrive does not provide lane section lengths by itself, calculate them by ourselves
+        for laneSection in newRoad.lanes.laneSections:
 
+            # Last lane section in road
+            if laneSection.idx + 1 >= len(newRoad.lanes.laneSections):
+                laneSection.length = newRoad.planView.getLength() - laneSection.sPos
 
-            # Objects
-            # TODO
+            # All but the last lane section end at the succeeding one
+            else:
+                laneSection.length = newRoad.lanes.laneSections[laneSection.idx + 1].sPos - laneSection.sPos
 
-            # Signals
-            # TODO
 
-            newOpenDrive.roads.append(newRoad)
+        # Objects
+        # TODO
 
-        return newOpenDrive
+        # Signals
+        # TODO
+
+        newOpenDrive.roads.append(newRoad)
+
+    return newOpenDrive
