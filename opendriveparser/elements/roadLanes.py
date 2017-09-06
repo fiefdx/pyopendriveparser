@@ -149,6 +149,7 @@ class LaneSection(object):
 
     @property
     def allLanes(self):
+        """ Attention! lanes are not sorted by id """
         return self._leftLanes.lanes + self._centerLanes.lanes + self._rightLanes.lanes
 
     def getLane(self, laneId):
@@ -161,7 +162,7 @@ class LaneSection(object):
 
 class LeftLanes(object):
 
-    sort_direction = True
+    sort_direction = False
 
     def __init__(self):
         self._lanes = []
@@ -175,7 +176,7 @@ class CenterLanes(LeftLanes):
     pass
 
 class RightLanes(LeftLanes):
-    sort_direction = False
+    sort_direction = True
 
 
 class Lane(object):
